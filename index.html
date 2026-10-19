@@ -1,18 +1,456 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#111111"><meta name="description" content="Fast offline billing for CraveHub Burger Point"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="CraveHub POS"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>CraveHub POS</title>
-<style>
-:root{--red:#ed171f;--yellow:#ffd900;--black:#111;--muted:#666;--line:#eee}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f5f5f5;color:#161616}header{background:#101010;color:white;padding:14px 16px;position:sticky;top:0;z-index:3;box-shadow:0 3px 12px #0002}header .brand{font-size:26px;font-weight:950;letter-spacing:-1px;line-height:1.05}header .brand span{color:var(--yellow)}header small{display:block;color:#ddd;margin-top:4px;font-weight:600}.tabs{display:flex;gap:8px;margin-top:12px}.tab{border:1px solid #555;background:#252525;color:#fff;border-radius:10px;padding:9px 13px;font-weight:800}.tab.active{background:var(--yellow);border-color:var(--yellow);color:#111}.wrap{max-width:900px;margin:auto;padding:12px}.screen{display:none}.screen.active{display:block}.cat{margin:13px 0 7px;font-weight:950;font-size:18px}.cat span{background:var(--yellow);padding:3px 12px;border-radius:8px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.item{border:2px solid transparent;background:white;border-radius:13px;padding:12px 10px;text-align:left;min-height:83px;box-shadow:0 2px 7px #0000000a;touch-action:manipulation}.item.selected{border-color:var(--red);background:#fff7f7}.sizebtn{border:0;background:#f1f1f1;border-radius:7px;padding:7px 8px;font-size:12px;font-weight:900;margin:2px 4px 0 0;color:#111}.sizebtn b{color:var(--red)}.sizebtn:active{background:#ffe0e0}.iname{font-weight:850;font-size:15px;line-height:1.2;display:block;margin-bottom:10px}.prices{display:flex;gap:7px;flex-wrap:wrap}.price{background:#f1f1f1;border-radius:7px;padding:4px 7px;font-size:13px;font-weight:850}.price b{color:var(--red)}.bill{background:#fff;border-radius:15px;padding:14px;margin:12px 0;box-shadow:0 3px 12px #0000000a}.billtop{display:flex;justify-content:space-between;align-items:center;gap:10px}.billtop h2{margin:0;font-size:19px}.total{font-size:28px;font-weight:950;color:var(--red)}.hint{font-size:12px;color:var(--muted)}.lineitem{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);align-items:center}.lineitem:last-child{border-bottom:0}.li-name{font-weight:800}.li-sub{font-size:12px;color:var(--muted);margin-top:3px}.qty{display:flex;align-items:center;gap:8px}.qty button{width:34px;height:34px;border:0;border-radius:9px;background:#eee;font-size:20px;font-weight:900}.qty .count{min-width:15px;text-align:center;font-weight:900}.btnrow{display:flex;gap:8px;margin-top:12px}.btn{border:0;border-radius:10px;padding:12px 14px;font-size:14px;font-weight:900;flex:1;touch-action:manipulation}.primary{background:var(--red);color:#fff}.dark{background:#111;color:white}.light{background:#eee;color:#111}.danger{background:#ffe5e5;color:#b00000}.empty{text-align:center;color:#777;padding:20px 6px}.input{width:100%;padding:11px;border:1px solid #ddd;border-radius:9px;font:inherit;margin:8px 0}.statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:white;border-radius:13px;padding:15px}.stat strong{display:block;font-size:25px}.stat span{font-size:12px;color:#666}.ordercard{background:white;border-radius:12px;padding:12px;margin:9px 0}.orderhead{display:flex;justify-content:space-between;font-weight:850}.ordercard p{margin:6px 0;color:#555;font-size:13px}.sectiontitle{font-size:20px;font-weight:950;margin:8px 0}.note{background:#fff8cc;border-radius:10px;padding:10px;font-size:13px;margin-top:10px}@media(min-width:650px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.wrap{padding:18px}.item{min-height:94px}}
-</style></head><body>
-<header><div class="brand">Crave<span>Hub</span></div><small>BURGER POINT & CHINESE FAST FOOD · BILLING</small><nav class="tabs"><button class="tab active" data-screen="billing">＋ New Bill</button><button class="tab" data-screen="orders">▤ Orders</button><button class="tab" data-screen="reports">▥ Sales</button></nav></header>
-<main class="wrap"><section id="billing" class="screen active"><div id="menu"></div><div class="bill"><div class="billtop"><h2>Current Order</h2><div class="total" id="total">₹0</div></div><div class="hint" id="count">0 items</div><div id="cart"><div class="empty">Tap a menu item above to add it to the bill.</div></div><label class="hint" for="customer">Customer name / token (optional)</label><input class="input" id="customer" placeholder="e.g. Token 12 or customer name" maxlength="60"><div class="btnrow"><button class="btn light" id="clear">Clear</button><button class="btn primary" id="save">✓ Save Order</button></div><div class="hint" style="margin-top:8px">Saved orders stay on this device. Save an order before starting the next bill.</div></div></section>
-<section id="orders" class="screen"><div class="sectiontitle">Saved Orders</div><input class="input" id="searchOrders" placeholder="Search order number or customer"><div id="orderList"></div><div class="btnrow"><button class="btn light" id="export">Export orders (CSV)</button><button class="btn danger" id="clearOrders">Delete all orders</button></div></section>
-<section id="reports" class="screen"><div class="sectiontitle">Sales Summary</div><div class="statgrid"><div class="stat"><span>Today's sales</span><strong id="todaySales">₹0</strong></div><div class="stat"><span>Orders today</span><strong id="todayOrders">0</strong></div><div class="stat"><span>All-time sales</span><strong id="allSales">₹0</strong></div><div class="stat"><span>Total orders</span><strong id="allOrders">0</strong></div></div><div class="note">Sales are calculated from saved orders on this phone. Export CSV regularly as a backup. Clearing browser/app data can remove saved orders.</div></section></main>
-<script>
-const menuData=[{cat:'Chowmein & Chinese',items:[['Chowmein',30,60],['Paneer Chowmein',45,90],['Fried Rice',30,60],['Manchurian',30,60],['Dry Manchurian',35,70],['Paneer Chilli',60,110],['Dry Paneer Chilli',60,110]]},{cat:'Combo',items:[['Fried Rice Manchurian',30,60],['Chowmein Manchurian',30,60],['Paneer Chilli Rice',60,120],['Paneer Chilli Chowmein',60,120]]},{cat:'Burger',items:[['Veg Burger',40,null],['Paneer Burger',50,null],['Cheese Burger',60,null]]},{cat:'Momos',items:[['Veg Momos',20,null],['Paneer Momos',30,null]]}];
-const KEY='cravehub_orders_v1';let cart={};let orders=loadOrders();const money=n=>'₹'+Number(n||0).toLocaleString('en-IN');function loadOrders(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []}}function persist(){localStorage.setItem(KEY,JSON.stringify(orders))}function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function renderMenu(){let html='';menuData.forEach(group=>{html+=`<div class="cat"><span>${group.cat}</span></div><div class="grid">`;group.items.forEach(([name,small,big])=>{const q=Object.values(cart).filter(v=>v.name===name).reduce((s,v)=>s+v.qty,0);html+=`<div class="item ${q?'selected':''}"><span class="iname">${esc(name)} ${q?`<span style="color:#e11;font-size:12px">· ${q} added</span>`:''}</span><span class="prices">${big?`<button class="sizebtn" data-name="${esc(name)}" data-size="small">Small <b>${money(small)}</b></button><button class="sizebtn" data-name="${esc(name)}" data-size="large">Large <b>${money(big)}</b></button>`:`<button class="sizebtn" data-name="${esc(name)}" data-size="single">Add <b>${money(small)}</b></button>`}</span></div>`});html+='</div>'});document.getElementById('menu').innerHTML=html;document.querySelectorAll('.sizebtn').forEach(btn=>btn.addEventListener('click',()=>chooseItem(btn.dataset.name,btn.dataset.size)))}function findItem(name){for(const g of menuData)for(const i of g.items)if(i[0]===name)return i;return null}function chooseItem(name,size){const item=findItem(name);if(!item)return;if(size==='single')size='small';const price=size==='large'?item[2]:item[1];const key=name+'|'+size;if(!cart[key])cart[key]={name,size,price,qty:0};cart[key].qty++;renderMenu();renderCart()}function renderCart(){const entries=Object.entries(cart).filter(([,v])=>v.qty>0);const total=entries.reduce((s,[,v])=>s+v.price*v.qty,0);document.getElementById('total').textContent=money(total);document.getElementById('count').textContent=entries.reduce((s,[,v])=>s+v.qty,0)+' items · '+entries.length+' menu lines';const target=document.getElementById('cart');if(!entries.length){target.innerHTML='<div class="empty">Tap a menu item above to add it to the bill.</div>';return}target.innerHTML=entries.map(([key,v])=>`<div class="lineitem"><div><div class="li-name">${esc(v.name)} <span style="font-size:12px;color:#666">${v.size==='large'?'(Large)':v.size==='small'&&findItem(v.name)?.[2]?'(Small)':''}</span></div><div class="li-sub">${money(v.price)} × ${v.qty} = <b>${money(v.price*v.qty)}</b></div></div><div class="qty"><button data-act="minus" data-key="${esc(key)}">−</button><span class="count">${v.qty}</span><button data-act="plus" data-key="${esc(key)}">+</button><button data-act="remove" data-key="${esc(key)}" aria-label="Remove" style="background:#ffe5e5;color:#b00;font-size:16px">×</button></div></div>`).join('');target.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.key;if(b.dataset.act==='plus')cart[k].qty++;else if(b.dataset.act==='minus')cart[k].qty--;else delete cart[k];if(cart[k]&&cart[k].qty<=0)delete cart[k];renderMenu();renderCart()})}
-function totalCart(){return Object.values(cart).reduce((s,v)=>s+v.price*v.qty,0)}document.getElementById('clear').onclick=()=>{if(Object.keys(cart).length&&!confirm('Clear the current bill?'))return;cart={};document.getElementById('customer').value='';renderMenu();renderCart()};document.getElementById('save').onclick=()=>{const items=Object.values(cart).filter(v=>v.qty>0);if(!items.length){alert('Please add at least one item before saving.');return}const now=new Date();const order={id:'CH'+now.getFullYear().toString().slice(-2)+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'-'+String(now.getTime()).slice(-5),date:now.toISOString(),customer:document.getElementById('customer').value.trim(),items:items.map(v=>({...v})),total:totalCart()};orders.unshift(order);persist();cart={};document.getElementById('customer').value='';renderMenu();renderCart();renderOrders();renderReports();alert(`Order saved!\n${order.id}\nTotal: ${money(order.total)}`)};
-function renderOrders(){const q=(document.getElementById('searchOrders')?.value||'').toLowerCase();const filtered=orders.filter(o=>o.id.toLowerCase().includes(q)||(o.customer||'').toLowerCase().includes(q));document.getElementById('orderList').innerHTML=filtered.length?filtered.map(o=>`<article class="ordercard"><div class="orderhead"><span>${esc(o.id)}</span><span>${money(o.total)}</span></div><p>${new Date(o.date).toLocaleString()} ${o.customer?' · '+esc(o.customer):''}</p><p>${o.items.map(i=>`${esc(i.name)}${i.size==='large'?' (L)':i.size==='small'&&findItem(i.name)?.[2]?' (S)':''} × ${i.qty}`).join(' · ')}</p><div class="btnrow"><button class="btn light" data-detail="${o.id}">View bill</button><button class="btn danger" data-del="${o.id}">Delete</button></div></article>`).join(''):'<div class="empty">No saved orders found.</div>';document.querySelectorAll('[data-detail]').forEach(b=>b.onclick=()=>{const o=orders.find(x=>x.id===b.dataset.detail);if(o)alert(`${o.id}\n${new Date(o.date).toLocaleString()}\n\n${o.items.map(i=>`${i.name} ${i.size==='large'?'(Large)':i.size==='small'&&findItem(i.name)?.[2]?'(Small)':''} × ${i.qty}  ${money(i.price*i.qty)}`).join('\n')}\n\nTOTAL: ${money(o.total)}`)});document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(confirm('Delete this saved order?')){orders=orders.filter(o=>o.id!==b.dataset.del);persist();renderOrders();renderReports()}})}function renderReports(){const today=new Date().toDateString(),todays=orders.filter(o=>new Date(o.date).toDateString()===today);document.getElementById('todaySales').textContent=money(todays.reduce((s,o)=>s+o.total,0));document.getElementById('todayOrders').textContent=todays.length;document.getElementById('allSales').textContent=money(orders.reduce((s,o)=>s+o.total,0));document.getElementById('allOrders').textContent=orders.length}document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===t));document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===t.dataset.screen));if(t.dataset.screen==='orders')renderOrders();if(t.dataset.screen==='reports')renderReports()});document.getElementById('searchOrders').addEventListener('input',renderOrders);document.getElementById('clearOrders').onclick=()=>{if(confirm('Delete ALL saved orders from this device? This cannot be undone.')){orders=[];persist();renderOrders();renderReports()}};document.getElementById('export').onclick=()=>{if(!orders.length){alert('No orders to export.');return}const rows=[['Order ID','Date','Customer','Items','Total'],...orders.map(o=>[o.id,new Date(o.date).toLocaleString(),o.customer,o.items.map(i=>`${i.name} (${i.size}) x${i.qty} @${i.price}`).join('; '),o.total])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));a.download='cravehub-orders.csv';a.click();URL.revokeObjectURL(a.href)};renderMenu();renderCart();renderOrders();renderReports();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-</script></body></html>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#111111">
+    <meta name="description" content="Fast offline billing for CraveHub Burger Point">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="CraveHub POS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>CraveHub POS</title>
+    <style>
+        :root {
+            --red: #ed171f;
+            --yellow: #ffd900;
+            --black: #111;
+            --muted: #666;
+            --line: #eee
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #161616
+        }
+
+        header {
+            background: #101010;
+            color: white;
+            padding: 14px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            box-shadow: 0 3px 12px #0002
+        }
+
+        header .brand {
+            font-size: 26px;
+            font-weight: 950;
+            letter-spacing: -1px;
+            line-height: 1.05
+        }
+
+        header .brand span {
+            color: var(--yellow)
+        }
+
+        header small {
+            display: block;
+            color: #ddd;
+            margin-top: 4px;
+            font-weight: 600
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px
+        }
+
+        .tab {
+            border: 1px solid #555;
+            background: #252525;
+            color: #fff;
+            border-radius: 10px;
+            padding: 9px 13px;
+            font-weight: 800
+        }
+
+        .tab.active {
+            background: var(--yellow);
+            border-color: var(--yellow);
+            color: #111
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: auto;
+            padding: 12px
+        }
+
+        .screen {
+            display: none
+        }
+
+        .screen.active {
+            display: block
+        }
+
+        .cat {
+            margin: 18px 0 10px;
+            font-weight: 950;
+            font-size: 18px
+        }
+
+        .cat span {
+            background: var(--yellow);
+            padding: 5px 13px;
+            border-radius: 10px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px
+        }
+
+        .item {
+            border: 1px solid #ececec;
+            background: white;
+            border-radius: 16px;
+            padding: 15px 13px;
+            text-align: left;
+            min-height: 102px;
+            box-shadow: 0 4px 14px #0000000a
+        }
+
+        .item.selected {
+            border-color: #ffc4c6;
+            background: #fff8f8;
+            box-shadow: 0 4px 16px #ed171f14
+        }
+
+        .sizebtn {
+            border: 1px solid #e7e7e7;
+            background: #f7f7f7;
+            border-radius: 10px;
+            padding: 10px 12px;
+            min-height: 46px;
+            font: inherit;
+            font-size: 14px;
+            font-weight: 900;
+            color: #111;
+            flex: 1;
+            touch-action: manipulation;
+            transition: background-color .15s ease, border-color .15s ease, transform .15s ease
+        }
+
+        .sizebtn b {
+            color: var(--red)
+        }
+
+        .sizebtn:hover {
+            background: #fff4cc;
+            border-color: #f0cc39
+        }
+
+        .sizebtn:active {
+            background: #ffe9a3;
+            transform: scale(.98)
+        }
+
+        .sizebtn:focus-visible {
+            outline: 3px solid #111;
+            outline-offset: 2px
+        }
+
+        .iname {
+            font-weight: 850;
+            font-size: 16px;
+            line-height: 1.2;
+            display: block;
+            margin-bottom: 12px
+        }
+
+        .prices {
+            display: flex;
+            gap: 8px;
+            width: 100%
+        }
+
+        @media(max-width:700px) {
+            .sizebtn {
+                padding: 9px 6px;
+                font-size: 13px
+            }
+        }
+
+        .price {
+            background: #f1f1f1;
+            border-radius: 7px;
+            padding: 4px 7px;
+            font-size: 13px;
+            font-weight: 850
+        }
+
+        .price b {
+            color: var(--red)
+        }
+
+        .bill {
+            background: #fff;
+            border-radius: 15px;
+            padding: 14px;
+            margin: 12px 0;
+            box-shadow: 0 3px 12px #0000000a
+        }
+
+        .billtop {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px
+        }
+
+        .billtop h2 {
+            margin: 0;
+            font-size: 19px
+        }
+
+        .total {
+            font-size: 28px;
+            font-weight: 950;
+            color: var(--red)
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .lineitem {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--line);
+            align-items: center
+        }
+
+        .lineitem:last-child {
+            border-bottom: 0
+        }
+
+        .li-name {
+            font-weight: 800
+        }
+
+        .li-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 3px
+        }
+
+        .qty {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .qty button {
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 9px;
+            background: #eee;
+            font-size: 20px;
+            font-weight: 900
+        }
+
+        .qty .count {
+            min-width: 15px;
+            text-align: center;
+            font-weight: 900
+        }
+
+        .btnrow {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 14px;
+            font-weight: 900;
+            flex: 1;
+            touch-action: manipulation
+        }
+
+        .primary {
+            background: var(--red);
+            color: #fff
+        }
+
+        .dark {
+            background: #111;
+            color: white
+        }
+
+        .light {
+            background: #eee;
+            color: #111
+        }
+
+        .danger {
+            background: #ffe5e5;
+            color: #b00000
+        }
+
+        .empty {
+            text-align: center;
+            color: #777;
+            padding: 20px 6px
+        }
+
+        .input {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ddd;
+            border-radius: 9px;
+            font: inherit;
+            margin: 8px 0
+        }
+
+        .statgrid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px
+        }
+
+        .stat {
+            background: white;
+            border-radius: 13px;
+            padding: 15px
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 25px
+        }
+
+        .stat span {
+            font-size: 12px;
+            color: #666
+        }
+
+        .ordercard {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 9px 0
+        }
+
+        .orderhead {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 850
+        }
+
+        .ordercard p {
+            margin: 6px 0;
+            color: #555;
+            font-size: 13px
+        }
+
+        .sectiontitle {
+            font-size: 20px;
+            font-weight: 950;
+            margin: 8px 0
+        }
+
+        .note {
+            background: #fff8cc;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 13px;
+            margin-top: 10px
+        }
+
+        @media(max-width:420px) {
+            .grid {
+                grid-template-columns: minmax(0, 1fr)
+            }
+        }
+
+        @media(min-width:650px) {
+            .grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr))
+            }
+
+            .wrap {
+                padding: 18px
+            }
+
+            .item {
+                min-height: 108px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="brand">Crave<span>Hub</span></div><small>BURGER POINT & CHINESE FAST FOOD · BILLING</small>
+        <nav class="tabs"><button class="tab active" data-screen="billing">＋ New Bill</button><button class="tab"
+                data-screen="orders">▤ Orders</button><button class="tab" data-screen="reports">▥ Sales</button></nav>
+    </header>
+    <main class="wrap">
+        <section id="billing" class="screen active">
+            <div id="menu"></div>
+            <div class="bill">
+                <div class="billtop">
+                    <h2>Current Order</h2>
+                    <div class="total" id="total">₹0</div>
+                </div>
+                <div class="hint" id="count">0 items</div>
+                <div id="cart">
+                    <div class="empty">Tap a menu item above to add it to the bill.</div>
+                </div><label class="hint" for="customer">Customer name / token (optional)</label><input class="input"
+                    id="customer" placeholder="e.g. Token 12 or customer name" maxlength="60">
+                <div class="btnrow"><button class="btn light" id="clear">Clear</button><button class="btn primary"
+                        id="save">✓ Save Order</button></div>
+                <div class="hint" style="margin-top:8px">Saved orders stay on this device. Save an order before starting
+                    the next bill.</div>
+            </div>
+        </section>
+        <section id="orders" class="screen">
+            <div class="sectiontitle">Saved Orders</div><input class="input" id="searchOrders"
+                placeholder="Search order number or customer">
+            <div id="orderList"></div>
+            <div class="btnrow"><button class="btn light" id="export">Export orders (CSV)</button><button
+                    class="btn danger" id="clearOrders">Delete all orders</button></div>
+        </section>
+        <section id="reports" class="screen">
+            <div class="sectiontitle">Sales Summary</div>
+            <div class="statgrid">
+                <div class="stat"><span>Today's sales</span><strong id="todaySales">₹0</strong></div>
+                <div class="stat"><span>Orders today</span><strong id="todayOrders">0</strong></div>
+                <div class="stat"><span>All-time sales</span><strong id="allSales">₹0</strong></div>
+                <div class="stat"><span>Total orders</span><strong id="allOrders">0</strong></div>
+            </div>
+            <div class="note">Sales are calculated from saved orders on this phone. Export CSV regularly as a backup.
+                Clearing browser/app data can remove saved orders.</div>
+        </section>
+    </main>
+    <script>
+        const menuData = [{ cat: 'Chowmein & Chinese', items: [['Chowmein', 30, 60], ['Paneer Chowmein', 45, 90], ['Fried Rice', 30, 60], ['Manchurian', 30, 60], ['Dry Manchurian', 35, 70], ['Paneer Chilli', 60, 110], ['Dry Paneer Chilli', 60, 110]] }, { cat: 'Combo', items: [['Fried Rice Manchurian', 30, 60], ['Chowmein Manchurian', 30, 60], ['Paneer Chilli Rice', 60, 120], ['Paneer Chilli Chowmein', 60, 120]] }, { cat: 'Burger', items: [['Veg Burger', 40, null], ['Paneer Burger', 50, null], ['Cheese Burger', 60, null]] }, { cat: 'Momos', items: [['Veg Momos', 20, null], ['Paneer Momos', 30, null]] }];
+        const KEY = 'cravehub_orders_v1'; let cart = {}; let orders = loadOrders(); const money = n => '₹' + Number(n || 0).toLocaleString('en-IN'); function loadOrders() { try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch (e) { return [] } } function persist() { localStorage.setItem(KEY, JSON.stringify(orders)) } function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
+        function renderMenu() { let html = ''; menuData.forEach(group => { html += `<div class="cat"><span>${group.cat}</span></div><div class="grid">`; group.items.forEach(([name, small, big]) => { const q = Object.values(cart).filter(v => v.name === name).reduce((s, v) => s + v.qty, 0); html += `<div class="item ${q ? 'selected' : ''}"><span class="iname">${esc(name)} ${q ? `<span style="color:#e11;font-size:12px">· ${q} added</span>` : ''}</span><span class="prices">${big ? `<button class="sizebtn" data-name="${esc(name)}" data-size="small">Small <b>${money(small)}</b></button><button class="sizebtn" data-name="${esc(name)}" data-size="large">Large <b>${money(big)}</b></button>` : `<button class="sizebtn" data-name="${esc(name)}" data-size="single">Add <b>${money(small)}</b></button>`}</span></div>` }); html += '</div>' }); document.getElementById('menu').innerHTML = html; document.querySelectorAll('.sizebtn').forEach(btn => btn.addEventListener('click', () => chooseItem(btn.dataset.name, btn.dataset.size))) } function findItem(name) { for (const g of menuData) for (const i of g.items) if (i[0] === name) return i; return null } function chooseItem(name, size) { const item = findItem(name); if (!item) return; if (size === 'single') size = 'small'; const price = size === 'large' ? item[2] : item[1]; const key = name + '|' + size; if (!cart[key]) cart[key] = { name, size, price, qty: 0 }; cart[key].qty++; renderMenu(); renderCart() } function renderCart() { const entries = Object.entries(cart).filter(([, v]) => v.qty > 0); const total = entries.reduce((s, [, v]) => s + v.price * v.qty, 0); document.getElementById('total').textContent = money(total); document.getElementById('count').textContent = entries.reduce((s, [, v]) => s + v.qty, 0) + ' items · ' + entries.length + ' menu lines'; const target = document.getElementById('cart'); if (!entries.length) { target.innerHTML = '<div class="empty">Tap a menu item above to add it to the bill.</div>'; return } target.innerHTML = entries.map(([key, v]) => `<div class="lineitem"><div><div class="li-name">${esc(v.name)} <span style="font-size:12px;color:#666">${v.size === 'large' ? '(Large)' : v.size === 'small' && findItem(v.name)?.[2] ? '(Small)' : ''}</span></div><div class="li-sub">${money(v.price)} × ${v.qty} = <b>${money(v.price * v.qty)}</b></div></div><div class="qty"><button data-act="minus" data-key="${esc(key)}">−</button><span class="count">${v.qty}</span><button data-act="plus" data-key="${esc(key)}">+</button><button data-act="remove" data-key="${esc(key)}" aria-label="Remove" style="background:#ffe5e5;color:#b00;font-size:16px">×</button></div></div>`).join(''); target.querySelectorAll('button').forEach(b => b.onclick = () => { const k = b.dataset.key; if (b.dataset.act === 'plus') cart[k].qty++; else if (b.dataset.act === 'minus') cart[k].qty--; else delete cart[k]; if (cart[k] && cart[k].qty <= 0) delete cart[k]; renderMenu(); renderCart() }) }
+        function totalCart() { return Object.values(cart).reduce((s, v) => s + v.price * v.qty, 0) } document.getElementById('clear').onclick = () => { if (Object.keys(cart).length && !confirm('Clear the current bill?')) return; cart = {}; document.getElementById('customer').value = ''; renderMenu(); renderCart() }; document.getElementById('save').onclick = () => { const items = Object.values(cart).filter(v => v.qty > 0); if (!items.length) { alert('Please add at least one item before saving.'); return } const now = new Date(); const order = { id: 'CH' + now.getFullYear().toString().slice(-2) + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '-' + String(now.getTime()).slice(-5), date: now.toISOString(), customer: document.getElementById('customer').value.trim(), items: items.map(v => ({ ...v })), total: totalCart() }; orders.unshift(order); persist(); cart = {}; document.getElementById('customer').value = ''; renderMenu(); renderCart(); renderOrders(); renderReports(); alert(`Order saved!\n${order.id}\nTotal: ${money(order.total)}`) };
+        function renderOrders() { const q = (document.getElementById('searchOrders')?.value || '').toLowerCase(); const filtered = orders.filter(o => o.id.toLowerCase().includes(q) || (o.customer || '').toLowerCase().includes(q)); document.getElementById('orderList').innerHTML = filtered.length ? filtered.map(o => `<article class="ordercard"><div class="orderhead"><span>${esc(o.id)}</span><span>${money(o.total)}</span></div><p>${new Date(o.date).toLocaleString()} ${o.customer ? ' · ' + esc(o.customer) : ''}</p><p>${o.items.map(i => `${esc(i.name)}${i.size === 'large' ? ' (L)' : i.size === 'small' && findItem(i.name)?.[2] ? ' (S)' : ''} × ${i.qty}`).join(' · ')}</p><div class="btnrow"><button class="btn light" data-detail="${o.id}">View bill</button><button class="btn danger" data-del="${o.id}">Delete</button></div></article>`).join('') : '<div class="empty">No saved orders found.</div>'; document.querySelectorAll('[data-detail]').forEach(b => b.onclick = () => { const o = orders.find(x => x.id === b.dataset.detail); if (o) alert(`${o.id}\n${new Date(o.date).toLocaleString()}\n\n${o.items.map(i => `${i.name} ${i.size === 'large' ? '(Large)' : i.size === 'small' && findItem(i.name)?.[2] ? '(Small)' : ''} × ${i.qty}  ${money(i.price * i.qty)}`).join('\n')}\n\nTOTAL: ${money(o.total)}`) }); document.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { if (confirm('Delete this saved order?')) { orders = orders.filter(o => o.id !== b.dataset.del); persist(); renderOrders(); renderReports() } }) } function renderReports() { const today = new Date().toDateString(), todays = orders.filter(o => new Date(o.date).toDateString() === today); document.getElementById('todaySales').textContent = money(todays.reduce((s, o) => s + o.total, 0)); document.getElementById('todayOrders').textContent = todays.length; document.getElementById('allSales').textContent = money(orders.reduce((s, o) => s + o.total, 0)); document.getElementById('allOrders').textContent = orders.length } document.querySelectorAll('.tab').forEach(t => t.onclick = () => { document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t)); document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === t.dataset.screen)); if (t.dataset.screen === 'orders') renderOrders(); if (t.dataset.screen === 'reports') renderReports() }); document.getElementById('searchOrders').addEventListener('input', renderOrders); document.getElementById('clearOrders').onclick = () => { if (confirm('Delete ALL saved orders from this device? This cannot be undone.')) { orders = []; persist(); renderOrders(); renderReports() } }; document.getElementById('export').onclick = () => { if (!orders.length) { alert('No orders to export.'); return } const rows = [['Order ID', 'Date', 'Customer', 'Items', 'Total'], ...orders.map(o => [o.id, new Date(o.date).toLocaleString(), o.customer, o.items.map(i => `${i.name} (${i.size}) x${i.qty} @${i.price}`).join('; '), o.total])]; const csv = rows.map(r => r.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })); a.download = 'cravehub-orders.csv'; a.click(); URL.revokeObjectURL(a.href) }; renderMenu(); renderCart(); renderOrders(); renderReports(); if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => { }));
+    </script>
+</body>
+
+</html>
